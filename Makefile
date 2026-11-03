@@ -1,7 +1,7 @@
 .PHONY: run test
 
 run:
-	python3 -m vulneval run --detector heuristic --out results/REPORT.md
+	python3 -m vulneval run --detector all --out results/REPORT.md
 
 test:
-	python3 -m pytest -q
+	@if [ -x .venv/bin/pytest ]; then .venv/bin/python -m pytest -q; else python3 -m pytest -q; fi
