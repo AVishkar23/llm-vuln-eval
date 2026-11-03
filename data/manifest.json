@@ -1,5 +1,5 @@
 {
-  "dataset_version": "1.0",
+  "dataset_version": "1.1",
   "notes": "All samples are small, self-authored teaching examples written for this harness. They are not copied from real CVE code or any production codebase.",
   "pairs": [
     {
@@ -36,6 +36,22 @@
       ]
     },
     {
+      "pair_id": "sqli2_py",
+      "category": "sql_injection",
+      "language": "python",
+      "severity": "high",
+      "vulnerable_file": "sqli2_py_vuln.py",
+      "fixed_file": "sqli2_py_fixed.py",
+      "vulnerable_lines": [
+        18
+      ],
+      "explanation": "Second-order SQL injection: the username is stored with a safe parameterized insert, then read back from the database and interpolated into a new query with an f-string. Storage did not sanitize it -- the value was attacker-controlled at write time and stays attacker-controlled when it comes back out.",
+      "fix_summary": "Bind the retrieved value as a query parameter instead of interpolating it; data from the database is data, never SQL syntax.",
+      "fix_markers": [
+        "username = ?"
+      ]
+    },
+    {
       "pair_id": "xxe_java",
       "category": "xxe",
       "language": "java",
@@ -66,6 +82,22 @@
       "fix_summary": "Serialize session data as JSON and parse it with json.loads, which cannot execute code.",
       "fix_markers": [
         "json.loads"
+      ]
+    },
+    {
+      "pair_id": "deser_yaml_py",
+      "category": "insecure_deserialization",
+      "language": "python",
+      "severity": "critical",
+      "vulnerable_file": "deser_yaml_py_vuln.py",
+      "fixed_file": "deser_yaml_py_fixed.py",
+      "vulnerable_lines": [
+        6
+      ],
+      "explanation": "yaml.load with the default (full) Loader constructs arbitrary Python objects from the document, so a crafted profile document executes code during parsing -- the same failure class as pickle, one import away.",
+      "fix_summary": "Use yaml.SafeLoader, which only constructs plain dicts, lists, and scalars.",
+      "fix_markers": [
+        "SafeLoader"
       ]
     },
     {
@@ -117,6 +149,22 @@
       "fix_markers": [
         "ALLOWED_HOSTS",
         "urlparse"
+      ]
+    },
+    {
+      "pair_id": "ssrf_redirect_py",
+      "category": "ssrf",
+      "language": "python",
+      "severity": "high",
+      "vulnerable_file": "ssrf_redirect_py_vuln.py",
+      "fixed_file": "ssrf_redirect_py_fixed.py",
+      "vulnerable_lines": [
+        15
+      ],
+      "explanation": "The allowlist check validates only the original URL. The redirect target from the Location header is fetched without re-validation, so an allowlisted host (or an attacker page on one) can bounce the server-side request to a link-local metadata endpoint or an intranet service.",
+      "fix_summary": "Disable automatic redirect following and re-validate every hop: each redirect target must itself be an allowlisted https URL before it is fetched.",
+      "fix_markers": [
+        "allow_redirects=False"
       ]
     },
     {
