@@ -1,0 +1,8 @@
+[project]
+name = "llm-vuln-eval"
+version = "1.0.0"
+description = "Evaluation harness for LLM vulnerability detection and patching: detection quality, patch quality, and false-positive burden on human reviewers."
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

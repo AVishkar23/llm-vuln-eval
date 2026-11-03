@@ -1,0 +1,187 @@
+{
+  "dataset_version": "1.0",
+  "notes": "All samples are small, self-authored teaching examples written for this harness. They are not copied from real CVE code or any production codebase.",
+  "pairs": [
+    {
+      "pair_id": "sqli_py",
+      "category": "sql_injection",
+      "language": "python",
+      "severity": "high",
+      "vulnerable_file": "sqli_py_vuln.py",
+      "fixed_file": "sqli_py_fixed.py",
+      "vulnerable_lines": [
+        5
+      ],
+      "explanation": "The username is concatenated directly into the SQL string, so an attacker can break out of the quoted value and change the query's logic (classic SQL injection).",
+      "fix_summary": "Use a parameterized query so the driver treats the username as data, never as SQL syntax.",
+      "fix_markers": [
+        "username = ?"
+      ]
+    },
+    {
+      "pair_id": "sqli_java",
+      "category": "sql_injection",
+      "language": "java",
+      "severity": "high",
+      "vulnerable_file": "sqli_java_vuln.java",
+      "fixed_file": "sqli_java_fixed.java",
+      "vulnerable_lines": [
+        6
+      ],
+      "explanation": "A Statement is executed with a query built by string concatenation, allowing injection through the username parameter.",
+      "fix_summary": "Use a PreparedStatement with a ? placeholder and bind the value with setString.",
+      "fix_markers": [
+        "PreparedStatement",
+        "setString"
+      ]
+    },
+    {
+      "pair_id": "xxe_java",
+      "category": "xxe",
+      "language": "java",
+      "severity": "high",
+      "vulnerable_file": "xxe_java_vuln.java",
+      "fixed_file": "xxe_java_fixed.java",
+      "vulnerable_lines": [
+        8
+      ],
+      "explanation": "DocumentBuilderFactory is used with default settings, so a crafted XML document can define external entities and make the parser read local files or make network requests (XXE).",
+      "fix_summary": "Disallow DOCTYPE declarations entirely and turn off XInclude and entity expansion on the factory.",
+      "fix_markers": [
+        "disallow-doctype-decl",
+        "setXIncludeAware(false)"
+      ]
+    },
+    {
+      "pair_id": "deser_py",
+      "category": "insecure_deserialization",
+      "language": "python",
+      "severity": "critical",
+      "vulnerable_file": "deser_py_vuln.py",
+      "fixed_file": "deser_py_fixed.py",
+      "vulnerable_lines": [
+        6
+      ],
+      "explanation": "pickle.loads on attacker-controlled bytes (a base64 cookie value) executes arbitrary code during unpickling; pickle data is a program, not a data format.",
+      "fix_summary": "Serialize session data as JSON and parse it with json.loads, which cannot execute code.",
+      "fix_markers": [
+        "json.loads"
+      ]
+    },
+    {
+      "pair_id": "traversal_py",
+      "category": "path_traversal",
+      "language": "python",
+      "severity": "high",
+      "vulnerable_file": "traversal_py_vuln.py",
+      "fixed_file": "traversal_py_fixed.py",
+      "vulnerable_lines": [
+        6
+      ],
+      "explanation": "The user-supplied filename is joined to the base directory unchecked, so '../../etc/passwd'-style input escapes the intended directory.",
+      "fix_summary": "Strip directory components with basename, resolve the final path, and verify it still lives under the base directory before opening it.",
+      "fix_markers": [
+        "os.path.basename",
+        "os.path.realpath"
+      ]
+    },
+    {
+      "pair_id": "traversal_java",
+      "category": "path_traversal",
+      "language": "java",
+      "severity": "high",
+      "vulnerable_file": "traversal_java_vuln.java",
+      "fixed_file": "traversal_java_fixed.java",
+      "vulnerable_lines": [
+        8
+      ],
+      "explanation": "baseDir.resolve(fileName) trusts the caller-supplied name; a name containing '..' segments resolves outside baseDir.",
+      "fix_summary": "Normalize the resolved path and reject anything that does not start with the base directory.",
+      "fix_markers": [
+        "normalize()",
+        "startsWith"
+      ]
+    },
+    {
+      "pair_id": "ssrf_py",
+      "category": "ssrf",
+      "language": "python",
+      "severity": "medium",
+      "vulnerable_file": "ssrf_py_vuln.py",
+      "fixed_file": "ssrf_py_fixed.py",
+      "vulnerable_lines": [
+        4
+      ],
+      "explanation": "The server fetches any URL the caller supplies, so it can be pointed at internal metadata endpoints or intranet services (SSRF).",
+      "fix_summary": "Parse the URL and only fetch https URLs whose host is on an explicit allowlist.",
+      "fix_markers": [
+        "ALLOWED_HOSTS",
+        "urlparse"
+      ]
+    },
+    {
+      "pair_id": "creds_py",
+      "category": "hardcoded_credentials",
+      "language": "python",
+      "severity": "medium",
+      "vulnerable_file": "creds_py_vuln.py",
+      "fixed_file": "creds_py_fixed.py",
+      "vulnerable_lines": [
+        1
+      ],
+      "explanation": "A live-looking API key is embedded in source code, where it leaks through repos, logs, and screenshots and cannot be rotated without a deploy.",
+      "fix_summary": "Read the key from an environment variable (or a secrets manager) at runtime instead of storing it in code.",
+      "fix_markers": [
+        "os.environ"
+      ]
+    },
+    {
+      "pair_id": "creds_java",
+      "category": "hardcoded_credentials",
+      "language": "java",
+      "severity": "high",
+      "vulnerable_file": "creds_java_vuln.java",
+      "fixed_file": "creds_java_fixed.java",
+      "vulnerable_lines": [
+        2
+      ],
+      "explanation": "The production database password is a string constant in the codebase; anyone with source access has the credential.",
+      "fix_summary": "Load the password from the environment with System.getenv at runtime.",
+      "fix_markers": [
+        "System.getenv"
+      ]
+    },
+    {
+      "pair_id": "weakcrypto_py",
+      "category": "weak_cryptography",
+      "language": "python",
+      "severity": "medium",
+      "vulnerable_file": "weakcrypto_py_vuln.py",
+      "fixed_file": "weakcrypto_py_fixed.py",
+      "vulnerable_lines": [
+        4
+      ],
+      "explanation": "MD5 is a fast, unsalted hash, so stolen password hashes can be brute-forced or rainbow-tabled at billions of guesses per second.",
+      "fix_summary": "Use a slow, salted password KDF (PBKDF2-HMAC-SHA256 with a per-password random salt and a high iteration count).",
+      "fix_markers": [
+        "pbkdf2_hmac"
+      ]
+    },
+    {
+      "pair_id": "weakcrypto_java",
+      "category": "weak_cryptography",
+      "language": "java",
+      "severity": "medium",
+      "vulnerable_file": "weakcrypto_java_vuln.java",
+      "fixed_file": "weakcrypto_java_fixed.java",
+      "vulnerable_lines": [
+        5
+      ],
+      "explanation": "DES has a 56-bit key that is brute-forceable, and ECB mode leaks plaintext patterns because identical blocks encrypt identically.",
+      "fix_summary": "Use AES in GCM mode, which provides confidentiality and integrity with a modern key size.",
+      "fix_markers": [
+        "AES/GCM"
+      ]
+    }
+  ]
+}
